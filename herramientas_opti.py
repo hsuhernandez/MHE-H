@@ -261,14 +261,6 @@ def ekf(f, h, x, u, w, y, P, Q, R, f_jacx=None, f_jacw=None, h_jacx=None, rho_hu
         f_jacw = jacobiano(f, 2)
     if h_jacx is None:
         h_jacx = jacobiano(h, 0)
-
-    # con Huber
-    def huber(residuo, delta):
-        norm_residuo = np.linalg.norm(residuo)
-        if norm_residuo <= delta:
-            return residuo
-        else:
-            return delta*residuo/norm_residuo
     
     # Predicción
     x_pred = f(x, u, w) # estado predicho, xhat(k | k-1) 
