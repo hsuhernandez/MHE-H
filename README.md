@@ -21,8 +21,7 @@ Este repositorio contiene la implementación de un **Moving Horizon Estimator ro
 |---------|-------------|
 | `herramientas_opti.py` | Funciones para formular problemas MHE con CasADi |
 | `GPS_MHE.ipynb` | Notebook: Aplicación de MHE robusto a datos GPS/IMU reales |
-| `nonlinear_example.ipynb` | Notebook: Ejemplo de sistema no lineal con MHE |
-| `nonlinear_example.ipynb` | Script de análisis: Comparativa MHE vs Kalman con 100 simulaciones |
+| `nonlinear_example.ipynb` | Notebook: Comparativa en sistema no lineal con 100 simulaciones |
 
 ### Datos
 
