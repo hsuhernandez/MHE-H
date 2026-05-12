@@ -235,7 +235,7 @@ def costo_y_restricciones(opti, N, f, h, X, W, V, Y, U, P, X0,
     # opti.subject_to(opti.bounded(-cs.inf, V, cs.inf))
     return J
 
-def ekf(f, h, x, u, w, y, P, Q, R, f_jacx=None, f_jacw=None, h_jacx=None, rho_huber=None):
+def ekf(f, h, x, u, w, y, P, Q, R, f_jacx=None, f_jacw=None, h_jacx=None):
     """Función que implementa el filtro de Kalman extendido, donde:
         f es la función de proceso
         h es la función de medición
@@ -274,8 +274,6 @@ def ekf(f, h, x, u, w, y, P, Q, R, f_jacx=None, f_jacw=None, h_jacx=None, rho_hu
     S = cs.mtimes([H,P_pred,H.T])+R # covarianza de innovación (o residual)
     K = cs.mtimes([P_pred,H.T,linalg.inv(S)]) # ganancia de Kalman
 
-    if rho_huber:
-        y_tilde = huber(y_tilde, rho_huber)
 
     # forma tradicional
     x_upd = x_pred + cs.mtimes(K, y_tilde) # estado actualizado, xhat(k | k)
@@ -319,11 +317,11 @@ def adaptative_gain(update_P, x0, P, y, h, **kwargs):
     return P
 
 def actualizar_x0_P(update_P, x0, P0, x1, u, w, y, f, h, Q, R, 
-                    f_jacx=None, f_jacw=None, h_jacx=None, rho_huber=None, **kwargs):
+                    f_jacx=None, f_jacw=None, h_jacx=None, **kwargs):
     if not update_P:
         return x1, P0
     elif update_P == 'EKF':
-        _, P = ekf(f, h, x0, u, w, y, P0, Q, R, f_jacx, f_jacw, h_jacx, rho_huber=rho_huber)
+        _, P = ekf(f, h, x0, u, w, y, P0, Q, R, f_jacx, f_jacw, h_jacx)
         return x1, P
     else:
         P = adaptative_gain(update_P, x0, P0, y, h, **kwargs)
@@ -439,7 +437,7 @@ def mhe(N, f, h, x0, u, y, P0, Q, R, theta_buffer = None,
         t_ini = time.time()
         x0, P0 = actualizar_x0_P(update_P, sol.value(X[:, 0]).reshape( N['x'], 1), P0, sol.value(X[:, 1]), 
                                 u[:, i-1], sol.value(W[:, 0]), y_window[:, 0],
-                                f, h, Q, R, f_jacx, f_jacw, h_jacx, rho_huber=rho_huber, **kwargs)
+                                f, h, Q, R, f_jacx, f_jacw, h_jacx, **kwargs)
         y_window = y_window[:, 1:]  # desplazo ventana
         y_window = np.column_stack((y_window, y[:, i+N['t']]))
         if meas_handling != '': # relleno mediciones ausentes
@@ -553,8 +551,7 @@ def _actualizar_ventana(y_window, x_kminus1=None, u_kminus1=None, w_kminus1=None
 
 def resolver_ekf(N, f, h, x_0, u, y, P, Q, R, 
                  f_jacx=None, f_jacw=None, h_jacx=None, 
-                 w_pos=False, rho_huber = None,
-                 theta_buffer=None,
+                 w_pos=False, theta_buffer=None,
                  meas_handling=''):
     """"""
     # Defino dimensiones del sistema
@@ -594,7 +591,7 @@ def resolver_ekf(N, f, h, x_0, u, y, P, Q, R,
                 y_used[:, i] = h(x_pred).full().flatten()
             
         x, P_0 = ekf(f,h, x_ekf[:, i], u[:, i], w_0,  y_used[:,i],
-                     P_0, Q, R, f_jacx=f_jacx, f_jacw=f_jacw, h_jacx=h_jacx, rho_huber=rho_huber)
+                     P_0, Q, R, f_jacx=f_jacx, f_jacw=f_jacw, h_jacx=h_jacx)
         x_ekf[:,i+1] = x
         t_ekf = np.concatenate((t_ekf, [time.time() - t_ini]))
     
